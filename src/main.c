@@ -1,84 +1,47 @@
-/*
-    Largely inspired to (or copied from) here:
-    http://www.binarytides.com/programming-udp-sockets-c-linux/
-*/
+//  ZeroMQ-base Hamster server, largely copied from http://zguide.zeromq.org/c:hwserver
 
-#include<stdio.h> //printf
-#include<string.h> //memset
-#include<stdlib.h> //exit(0);
-#include<arpa/inet.h>
-#include<sys/socket.h>
-
-// https://stackoverflow.com/questions/19472546/implicit-declaration-of-function-close
+#include <zmq.h>
+#include <stdio.h>
 #include <unistd.h>
- 
-#define BUFLEN 512  //Max length of buffer
-#define PORT 8888   //The port on which to listen for incoming data
- 
-void die(char *s)
+#include <string.h>
+#include <assert.h>
+
+#define HAMSTER_PORT 8888
+
+int main (void)
 {
-    perror(s);
-    exit(1);
-}
- 
-int main(void)
-{
-    // where we keep track of the counted tickets
-    unsigned long long int counter = 0;
+    //  Socket to talk to clients
+    void *context = zmq_ctx_new ();
+    void *responder = zmq_socket (context, ZMQ_REP);
 
-    struct sockaddr_in si_me, si_other;
-    
-    unsigned int slen; 
+    int counted_so_far = 0;
 
-    int s, i = sizeof(si_other) , recv_len;
+    int step_counter = 0;
 
-    char buf[BUFLEN];
-     
-    //create a UDP socket
-    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-    {
-        die("socket");
-    }
-     
-    // zero out the structure
-    memset((char *) &si_me, 0, sizeof(si_me));
-     
-    si_me.sin_family = AF_INET;
-    si_me.sin_port = htons(PORT);
-    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-     
-    //bind socket to port
-    if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
-    {
-        die("bind");
-    }
-     
-    printf("Hamster is happily running and counting on port %d.\n", PORT);
+    char listener_address[16];
 
-    //keep listening for data
-    while(1)
-    {
-         
-        //try to receive some data, this is a blocking call
-        if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
-        {
-            die("recvfrom()");
+    memset(listener_address, 0, 16);
+
+    snprintf(listener_address, sizeof(listener_address), "tcp://*:%d", HAMSTER_PORT);
+
+    printf("Hamster is happily running and counting on port %d.\n", HAMSTER_PORT);
+
+    int rc = zmq_bind (responder, listener_address);
+    assert (rc == 0);
+
+    while (1) {
+        char buffer [10];
+        zmq_recv (responder, buffer, 10, 0);
+
+        counted_so_far++;
+        step_counter++;
+
+        if (step_counter >= 5000) {
+           printf("counted so far: %d\n", counted_so_far);
+           step_counter = 0;
         }
-         
-        counter++;
-        //print details of the client/peer and the data received
-        //printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-        //printf("Data: %s\n" , buf);
-         
-        //now reply the client with the same data
-        //printf("sending %lu bytes\n", sizeof(counter));
-        if (sendto(s, &counter, sizeof(counter), 0, (struct sockaddr*) &si_other, slen) == -1)
-        {
-            die("sendto()");
-        }
-    }
- 
-    close(s);
 
+        zmq_send (responder, "ok", 2, 0);
+    }
     return 0;
 }

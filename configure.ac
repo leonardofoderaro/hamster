@@ -5,6 +5,10 @@ AM_INIT_AUTOMAKE
 
 AC_PROG_CC
 
+PKG_CHECK_MODULES([libzmq], [libzmq])
+CFLAGS="${libzmq_CFLAGS} ${CFLAGS}"
+LIBS="${libzmq_LIBS} ${LIBS}"
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile])
 
