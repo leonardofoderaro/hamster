@@ -28,9 +28,7 @@ int main (void)
     while (1) {
         char buffer [10];
         zmq_recv (responder, buffer, 10, 0);
-        printf ("Received Hello\n");
-        sleep (1);          //  Do some 'work'
-        zmq_send (responder, "World", 5, 0);
+        zmq_send (responder, "ok", 2, 0);
     }
     return 0;
 }
