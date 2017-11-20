@@ -24,7 +24,7 @@ void die(char *s)
 int main(void)
 {
     // where we keep track of the counted tickets
-    unsigned long long counter = 0;
+    unsigned long long int counter = 0;
 
     struct sockaddr_in si_me, si_other;
     
