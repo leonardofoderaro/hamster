@@ -14,6 +14,10 @@ int main (void)
     void *context = zmq_ctx_new ();
     void *responder = zmq_socket (context, ZMQ_REP);
 
+    int counted_so_far = 0;
+
+    int step_counter = 0;
+
     char listener_address[16];
 
     memset(listener_address, 0, 16);
@@ -28,6 +32,15 @@ int main (void)
     while (1) {
         char buffer [10];
         zmq_recv (responder, buffer, 10, 0);
+
+        counted_so_far++;
+        step_counter++;
+
+        if (step_counter >= 5000) {
+           printf("counted so far: %d\n", counted_so_far);
+           step_counter = 0;
+        }
+
         zmq_send (responder, "ok", 2, 0);
     }
     return 0;
