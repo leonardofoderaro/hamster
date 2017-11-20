@@ -1,4 +1,8 @@
 /*
+    This was the very first attempt to implement Hamster Server. 
+    Currently not up-to-date with the latest server version, 
+    keeping it for future developments but disabling it for now.
+
     Largely inspired to (or copied from) here:
     http://www.binarytides.com/programming-udp-sockets-c-linux/
 */
@@ -23,6 +27,9 @@ void die(char *s)
  
 int main(void)
 {
+    printf("Sorry, this version of the server is not currently working.");
+    return -1;
+   
     // where we keep track of the counted tickets
     unsigned long long int counter = 0;
 
